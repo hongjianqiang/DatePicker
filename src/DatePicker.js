@@ -5,6 +5,8 @@ const createElement = doc.createElement.bind(doc);
 
 class DatePicker {
     constructor() {
+        this.viewModel();
+
         this.Header();
         this.Content();
         this.Bottom();
@@ -16,14 +18,173 @@ class DatePicker {
         doc.body.append(this.datePicker);
     }
 
+    onTdClick(e) {
+        console.log(e);
+    }
+
+    viewModel() {
+        const curr = new Date();
+        const render = () => {
+            this.renderHeader();
+            this.renderCalendar();
+        };
+
+        this.current = {
+            year: (year) => {
+                if(undefined !== year) {
+                    curr.setFullYear(year);
+                    render();
+                    return year;
+                } else {
+                    return curr.getFullYear();
+                }
+            },
+            month: (month) => {
+                if(undefined !== month) {
+                    curr.setMonth(month);
+                    render();
+                    return month;
+                } else {
+                    return curr.getMonth();
+                }
+            },
+            date: (date) => {
+                if(undefined !== date) {
+                    curr.setDate(date);
+                    render();
+                    return date;
+                } else {
+                    return curr.getDate();
+                }
+            },
+            hh: (hh) => {
+                if(undefined !== hh) {
+                    curr.setHours(hh);
+                    render();
+                    return hh;
+                } else {
+                    return curr.getHours();
+                }
+            },
+            mm: (mm) => {
+                if(undefined !== mm) {
+                    curr.setMinutes(mm);
+                    render();
+                    return mm;
+                } else {
+                    return curr.getMinutes();
+                }
+            },
+            ss: (ss) => {
+                if(undefined !== ss) {
+                    curr.setSeconds(ss);
+                    render();
+                    return ss;
+                } else {
+                    return curr.getSeconds();
+                }
+            }
+        };
+    }
+
+    renderHeader() {
+        const HTML = `
+            <div class="last-year">
+                <span class="i-arrow"></span>
+                <span class="i-arrow"></span>
+            </div>
+            <div class="last-month">
+                <span class="i-arrow"></span>
+            </div>
+            <div class="year-month">
+                <span>2019年</span> <span>11月</span>
+            </div>
+            <div class="next-year">
+                <span class="i-arrow"></span>
+                <span class="i-arrow"></span>
+            </div>
+            <div class="next-month">
+                <span class="i-arrow"></span>
+            </div>
+        `.trim();
+
+        this.header.innerHTML = HTML;
+
+        const [lastYear, lastMonth, yearMonth, nextYear, nextMonth] = this.header.querySelectorAll('div');
+        const [year, month] = yearMonth.querySelectorAll('.year-month span');
+
+        year.textContent  = `${this.current.year()}年`;
+        month.textContent = `${this.current.month()+1}月`;
+
+        lastYear.onclick = () => {
+            this.current.year( this.current.year() - 1 );
+        };
+
+        lastMonth.onclick = () => {
+            this.current.month( this.current.month() - 1 );
+        };
+
+        nextMonth.onclick = () => {
+            this.current.month( this.current.month() + 1 );
+        };
+
+        nextYear.onclick = () => {
+            this.current.year( this.current.year() + 1 );
+        };
+    }
+
+    renderCalendar({
+        year = this.current.year(), 
+        month = this.current.month(), 
+        selectDate = []
+    } = {}) {
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
+        const HTML = `
+            <table cellspacing="0">
+                <tbody>
+                    <tr>
+                        ${days.map(day => '<th>'+day+'</th>').join('\n')}
+                    </tr>
+                </tbody>
+            </table>
+        `.trim();
+
+        this.content.innerHTML = HTML;
+
+        const now = new Date();
+        const tbody = this.content.querySelector('tbody');
+        const dates = this.getDates(year, month);
+
+        let tr = createElement('tr');
+        
+        for (const {year:_year, month:_month, date:_date, day:_day} of dates) {
+            const td = createElement('td');
+
+            td.textContent = _date; 
+            td.onclick = this.onTdClick;
+
+            if ( month !== _month ) td.classList.add('other-month');
+            if ( now.getFullYear() === _year && now.getMonth() === _month && now.getDate() === _date) {
+                td.classList.add('today');
+            }
+            if( month === _month && selectDate.includes(_date) ) {
+                td.classList.add('active');
+            }
+
+            if (0 === _day) tr = createElement('tr')
+            tr.append(td);
+            if (6 === _day) tbody.append(tr);
+        }
+    }
+
     getDates(year, month) {
         const dates = [];
         const thisMonth = new Date(year, month);
         const first = thisMonth.getDay();
     
         thisMonth.setDate(1-first);
-    
-        while ( thisMonth.getMonth() < month +  1 ) {
+
+        while ( +thisMonth < +new Date(year, month+1) ) {
             dates.push({
                 year: thisMonth.getFullYear(),  // 年
                 month: thisMonth.getMonth(),    // 月
@@ -51,90 +212,19 @@ class DatePicker {
     }
 
     Header() {
-        const HTML = `
-            <div class="last-year">
-                <span class="i-arrow"></span>
-                <span class="i-arrow"></span>
-            </div>
-            <div class="yesterday">
-                <span class="i-arrow"></span>
-            </div>
-            <div class="year-month">
-                <span>2019年</span> <span>11月</span>
-            </div>
-            <div class="next-year">
-                <span class="i-arrow"></span>
-                <span class="i-arrow"></span>
-            </div>
-            <div class="tomorrow">
-                <span class="i-arrow"></span>
-            </div>
-        `.trim();
-
         this.header = createElement('div');
-        this.header.innerHTML = HTML;
         this.header.classList.add('header');
 
-        const now = new Date();
-        const [lastYear, yesterday, yearMonth, nextYear, tomorrow] = this.header.querySelectorAll('div');
-        const [year, month] = yearMonth.querySelectorAll('.year-month span');
-
-        year.textContent  = `${now.getFullYear()}年`;
-        month.textContent = `${now.getMonth()+1}月`;
-
-        lastYear.onclick = () => {
-            console.log('lastYear');
-        };
-
-        yesterday.onclick = () => {
-            console.log('yesterday');
-        };
-
-        tomorrow.onclick = () => {
-            console.log('tomorrow');
-        };
-
-        nextYear.onclick = () => {
-            console.log('nextYear');
-        };
+        this.renderHeader();
     }
 
     Content() {
-        const days = ['日', '一', '二', '三', '四', '五', '六'];
-        const HTML = `
-            <table cellspacing="0">
-                <tbody>
-                    <tr>
-                        ${days.map(day => '<th>'+day+'</th>').join('\n')}
-                    </tr>
-                </tbody>
-            </table>
-        `.trim();
-
         this.content = createElement('div');
-        this.content.innerHTML = HTML;
         this.content.classList.add('content');
 
-        const now = new Date();
-        const tbody = this.content.querySelector('tbody');
-        const dates = this.getDates(now.getFullYear(), now.getMonth());
-
-        let tr = createElement('tr');
-
-        for (const {year, month, date, day} of dates) {
-            const td = createElement('td');
-
-            td.textContent = date;
-            if ( now.getMonth() !== month ) td.classList.add('other-month');
-            if ( now.getFullYear() === year && now.getMonth() === month && now.getDate() === date) {
-                td.classList.add('active');
-                td.classList.add('today');
-            }
-
-            if (0 === day) tr = createElement('tr')
-            tr.append(td);
-            if (6 === day) tbody.append(tr);
-        }
+        this.renderCalendar({
+            selectDate: [(new Date()).getDate()]
+        });
     }
 
     Bottom() {
