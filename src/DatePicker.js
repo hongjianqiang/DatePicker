@@ -19,7 +19,15 @@ class DatePicker {
     }
 
     onTdClick(e) {
-        console.log(e);
+        const target = e.target;
+
+        if (target.classList.contains('other-month')) {
+            this.current.month( target.dataset.month );
+            this.current.date( target.dataset.date );
+
+        } else {
+            this.current.date(target.textContent);
+        }
     }
 
     viewModel() {
@@ -161,13 +169,19 @@ class DatePicker {
             const td = createElement('td');
 
             td.textContent = _date; 
-            td.onclick = this.onTdClick;
+            td.dataset.year = _year;
+            td.dataset.month = _month;
+            td.dataset.date = _date;
+            td.dataset.day = _day;
+            td.onclick = this.onTdClick.bind(this);
 
             if ( month !== _month ) td.classList.add('other-month');
             if ( now.getFullYear() === _year && now.getMonth() === _month && now.getDate() === _date) {
                 td.classList.add('today');
             }
-            if( month === _month && selectDate.includes(_date) ) {
+            if ( month === _month && selectDate.includes(_date) ) {
+                td.classList.add('active');
+            } else if ( month === _month && _date === this.current.date() ) {
                 td.classList.add('active');
             }
 
@@ -279,6 +293,10 @@ class DatePicker {
         today.onclick = () => {
             const now = new Date();
 
+            this.current.year( now.getFullYear() );
+            this.current.month( now.getMonth() );
+            this.current.date( now.getDate() );
+            
             hh.value = (''+now.getHours()).padStart(2, '0');
             mm.value = (''+now.getMinutes()).padStart(2, '0');
             ss.value = (''+now.getSeconds()).padStart(2, '0');
