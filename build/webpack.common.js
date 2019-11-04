@@ -33,19 +33,19 @@ module.exports = {
                 }
             }, {
                 loader: 'css-loader',
-                options: {
-                    // modules: { // 开启CSS模块化
-                    //     localIdentName: '[local]__[hash:6]'
-                    // }
-                }
             }, {
                 loader: 'postcss-loader',
             }, {
                 loader: 'less-loader',
             }]
         }, {
-            test: /\.svg$/,
-            loader: 'file-loader',
+            test: /\.(png|jpg|gif|svg)$/i,
+            use: [{
+                loader: 'url-loader',
+                options: {
+                    limit: 8192,
+                }
+            }]
         }]
     },
     plugins: [
