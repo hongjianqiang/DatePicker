@@ -40,6 +40,12 @@ class DatePicker {
         this.header = createElement('div');
         this.header.innerHTML = HTML;
         this.header.classList.add('header');
+
+        const now = new Date();
+        const [year, month] = this.header.querySelectorAll('.year-month span');
+
+        year.textContent  = `${now.getFullYear()}年`;
+        month.textContent = `${now.getMonth()+1}月`;
     }
 
     Content() {
@@ -113,15 +119,15 @@ class DatePicker {
         const HTML = `
             <span class="label">时间</span>
             <span class="time">
-                <input value="12" type="number" maxlength="2" min="0" max="23" class="tm"
+                <input value="" type="number" maxlength="2" min="0" max="23" class="tm"
                 ><input value=":" readonly class="seq"
-                ><input value="34" type="number" maxlength="2" min="0" max="59" class="tm"
+                ><input value="" type="number" maxlength="2" min="0" max="59" class="tm"
                 ><input value=":" readonly class="seq"
-                ><input value="56" type="number" maxlength="2" min="0" max="59" class="tm">
+                ><input value="" type="number" maxlength="2" min="0" max="59" class="tm">
             </span>
             <span class="set-time">
-                <div class="add"><div class="i-arrow"></div></div>
-                <div class="sub"><div class="i-arrow"></div></div>
+                <div class="btn add"><div class="i-arrow"></div></div>
+                <div class="btn sub"><div class="i-arrow"></div></div>
             </span>
             <span class="control">
                 <div class="btn">清空</div>
@@ -133,6 +139,44 @@ class DatePicker {
         this.bottom = createElement('div');
         this.bottom.innerHTML = HTML;
         this.bottom.classList.add('bottom');
+
+        const [hh, mm, ss] = this.bottom.querySelectorAll('.time [type="number"]');
+        const [add, sub] = this.bottom.querySelectorAll('.set-time .btn');
+        const [clear, today, confirm] = this.bottom.querySelectorAll('.control .btn');
+
+        let focus = hh;
+
+        hh.onfocus = () => { focus = hh };
+        mm.onfocus = () => { focus = mm };
+        ss.onfocus = () => { focus = ss };
+
+        add.onclick = () => {
+            const value = (+focus.value < focus.max)?(+focus.value+1):(focus.value);
+            focus.value = (''+value).padStart(2, '0');
+        };
+
+        sub.onclick = () => {
+            const value = (+focus.value > focus.min)?(+focus.value-1):(focus.value);
+            focus.value = (''+value).padStart(2, '0');
+        };
+
+        clear.onclick = () => {
+            console.log('清空');
+        };
+
+        today.onclick = () => {
+            const now = new Date();
+
+            hh.value = (''+now.getHours()).padStart(2, '0');
+            mm.value = (''+now.getMinutes()).padStart(2, '0');
+            ss.value = (''+now.getSeconds()).padStart(2, '0');
+        };
+
+        confirm.onclick = () => {
+            console.log('确定');
+        };
+
+        today.onclick();
     }
 }
 
