@@ -16,6 +16,40 @@ class DatePicker {
         doc.body.append(this.datePicker);
     }
 
+    getDates(year, month) {
+        const dates = [];
+        const thisMonth = new Date(year, month);
+        const first = thisMonth.getDay();
+    
+        thisMonth.setDate(1-first);
+    
+        while ( thisMonth.getMonth() < month +  1 ) {
+            dates.push({
+                year: thisMonth.getFullYear(),  // 年
+                month: thisMonth.getMonth(),    // 月
+                date: thisMonth.getDate(),      // 日
+                day: thisMonth.getDay(),        // 星期
+            });
+    
+            thisMonth.setDate( thisMonth.getDate() + 1 );
+        }
+    
+        const len = dates.length;
+    
+        for (let i = 6 - dates[len-1].day; i>0; i-- ) {
+            dates.push({
+                year: thisMonth.getFullYear(),  // 年
+                month: thisMonth.getMonth(),    // 月
+                date: thisMonth.getDate(),      // 日
+                day: thisMonth.getDay(),        // 星期
+            });
+    
+            thisMonth.setDate( thisMonth.getDate() + 1 );
+        }
+    
+        return dates;
+    }
+
     Header() {
         const HTML = `
             <div class="last-year">
@@ -42,69 +76,36 @@ class DatePicker {
         this.header.classList.add('header');
 
         const now = new Date();
-        const [year, month] = this.header.querySelectorAll('.year-month span');
+        const [lastYear, yesterday, yearMonth, nextYear, tomorrow] = this.header.querySelectorAll('div');
+        const [year, month] = yearMonth.querySelectorAll('.year-month span');
 
         year.textContent  = `${now.getFullYear()}年`;
         month.textContent = `${now.getMonth()+1}月`;
+
+        lastYear.onclick = () => {
+            console.log('lastYear');
+        };
+
+        yesterday.onclick = () => {
+            console.log('yesterday');
+        };
+
+        tomorrow.onclick = () => {
+            console.log('tomorrow');
+        };
+
+        nextYear.onclick = () => {
+            console.log('nextYear');
+        };
     }
 
     Content() {
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
         const HTML = `
             <table cellspacing="0">
                 <tbody>
                     <tr>
-                        <th>日</th>
-                        <th>一</th>
-                        <th>二</th>
-                        <th>三</th>
-                        <th>四</th>
-                        <th>五</th>
-                        <th>六</th>
-                    </tr>
-                    <tr>
-                        <td>27</td>
-                        <td>28</td>
-                        <td>29</td>
-                        <td>30</td>
-                        <td>31</td>
-                        <td>1</td>
-                        <td>2</td>
-                    </tr>
-                    <tr>
-                        <td>3</td>
-                        <td>4</td>
-                        <td>5</td>
-                        <td>6</td>
-                        <td>7</td>
-                        <td>8</td>
-                        <td>9</td>
-                    </tr>
-                    <tr>
-                        <td>10</td>
-                        <td>11</td>
-                        <td>12</td>
-                        <td>13</td>
-                        <td>14</td>
-                        <td>15</td>
-                        <td>16</td>
-                    </tr>
-                    <tr>
-                        <td>17</td>
-                        <td>18</td>
-                        <td>19</td>
-                        <td>20</td>
-                        <td>21</td>
-                        <td>22</td>
-                        <td>23</td>
-                    </tr>
-                    <tr>
-                        <td>24</td>
-                        <td>25</td>
-                        <td>26</td>
-                        <td>27</td>
-                        <td>28</td>
-                        <td>29</td>
-                        <td>30</td>
+                        ${days.map(day => '<th>'+day+'</th>').join('\n')}
                     </tr>
                 </tbody>
             </table>
@@ -113,6 +114,27 @@ class DatePicker {
         this.content = createElement('div');
         this.content.innerHTML = HTML;
         this.content.classList.add('content');
+
+        const now = new Date();
+        const tbody = this.content.querySelector('tbody');
+        const dates = this.getDates(now.getFullYear(), now.getMonth());
+
+        let tr = createElement('tr');
+
+        for (const {year, month, date, day} of dates) {
+            const td = createElement('td');
+
+            td.textContent = date;
+            if ( now.getMonth() !== month ) td.classList.add('other-month');
+            if ( now.getFullYear() === year && now.getMonth() === month && now.getDate() === date) {
+                td.classList.add('active');
+                td.classList.add('today');
+            }
+
+            if (0 === day) tr = createElement('tr')
+            tr.append(td);
+            if (6 === day) tbody.append(tr);
+        }
     }
 
     Bottom() {

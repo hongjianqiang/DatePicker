@@ -29,6 +29,7 @@
             width: 20px;
             height: 25px;
             line-height: 25px;
+            user-select:none;
             cursor: pointer;
 
             .i-arrow:nth-child(1) { transform: rotate(-135deg); }
@@ -40,6 +41,7 @@
             width: 20px;
             height: 25px;
             line-height: 25px;
+            user-select:none;
             cursor: pointer;
 
             .i-arrow:nth-child(1) { transform: rotate(-135deg); }
@@ -58,6 +60,7 @@
             width: 20px;
             height: 25px;
             line-height: 25px;
+            user-select:none;
             cursor: pointer;
 
             .i-arrow:nth-child(1) { transform: rotate(45deg); }
@@ -70,6 +73,7 @@
             width: 20px;
             height: 25px;
             line-height: 25px;
+            user-select:none;
             cursor: pointer;
 
             .i-arrow:nth-child(1) { transform: rotate(45deg); }
@@ -84,6 +88,10 @@
             border: #c5d9e8 1px solid;
             text-align: center;
             margin: 5px 0;
+
+            .other-month { color: #bbb; }
+            .active { background: #BDEBEE; }
+            .today { color: red; }
             
             tr:first-child { background-color: #BDEBEE; }   
             td { cursor: pointer; }
@@ -99,6 +107,7 @@
             height: 24px;
             line-height: 24px;
             margin-right: 5px;
+            user-select:none;
         }
 
         .time {
