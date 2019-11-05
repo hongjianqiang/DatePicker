@@ -42,8 +42,12 @@ class DatePicker {
                 '<% for (let i = 0; i < this.dates.length;) { %>',
                 '<tr>',
                     '<% for (let j = 0; j < 7; j++, i++) { %>',
-                    '<% if ( new Date().getFullYear()==this.dates[i].year && this.dates[i].month==new Date().getMonth() && this.dates[i].date==new Date().getDate() ) { %>',
+                    '<% if ( new Date().getFullYear()==this.dates[i].year && this.dates[i].month==new Date().getMonth() && this.dates[i].date==new Date().getDate() && this.dates[i].date===this.date ) { %>',
+                    '<td class="today active" @click="this.onTD(e, <% this.dates[i].year %>, <% this.dates[i].month %>, <% this.dates[i].date %>)"><% this.dates[i].date %></td>',
+                    '<% } else if ( new Date().getFullYear()==this.dates[i].year && this.dates[i].month==new Date().getMonth() && this.dates[i].date==new Date().getDate() ) { %>',
                     '<td class="today" @click="this.onTD(e, <% this.dates[i].year %>, <% this.dates[i].month %>, <% this.dates[i].date %>)"><% this.dates[i].date %></td>',
+                    '<% } else if ( this.year==this.dates[i].year && this.dates[i].month==this.month && this.dates[i].date===this.date ) { %>',
+                    '<td class="active" @click="this.onTD(e, <% this.dates[i].year %>, <% this.dates[i].month %>, <% this.dates[i].date %>)"><% this.dates[i].date %></td>',
                     '<% } else if ( this.year==this.dates[i].year && this.dates[i].month==this.month) { %>',
                     '<td @click="this.onTD(e, <% this.dates[i].year %>, <% this.dates[i].month %>, <% this.dates[i].date %>)"><% this.dates[i].date %></td>',
                     '<% } else { %>',
@@ -225,7 +229,7 @@ class DatePicker {
                     let value = this.data.fmt.toLowerCase();
 
                     value = value.replace('yyyy', this.data.year)
-                                .replace('mm', this.data.month)
+                                .replace('mm', +this.data.month+1)
                                 .replace('dd', this.data.date)
                                 .replace('hh', this.data.hh)
                                 .replace('mm', this.data.mm)
@@ -235,7 +239,9 @@ class DatePicker {
                 }
 
                 this.destory();
-            }
+            },
+
+            fmtDate,
         };
     })(); 
 
@@ -243,6 +249,7 @@ class DatePicker {
         this.targetElement = targetElement;
 
         this.datePicker = createElement('div');
+        this.datePicker.instance = this;
         this.datePicker.classList.add('date-picker');
 
         // 组件显示的具体位置
@@ -261,8 +268,17 @@ class DatePicker {
             e[this.constructor.name] = this;
         };
 
+        const thisDate = new Date(this.targetElement.value.replace(/-/g, '/'));
+
         // 将数据渲染到模板中
-        this.setData({ fmt });
+        if ( isNaN(+thisDate) ) {
+            this.setData({ fmt });
+        } else {
+            this.setData({
+                fmt,
+                ...this.data.fmtDate(thisDate)
+            });
+        }
 
         // 添加到页面DOM中
         doc.body.append(this.datePicker);
@@ -365,6 +381,9 @@ class DatePicker {
     }
 
     destory() {
+        this.setData.cache = {
+            lastHTML: ''
+        }
         this.datePicker.remove();
     }
 }
@@ -375,7 +394,7 @@ document.addEventListener('click', (e) => {
 
     if ( ! (e.DatePicker instanceof DatePicker) ) {
         for ( const datePicker of datePickers ) {
-            datePicker.remove();
+            datePicker.instance.destory();
         }
     }
 
