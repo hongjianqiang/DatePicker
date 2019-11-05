@@ -4,7 +4,49 @@ const doc = document;
 const createElement = doc.createElement.bind(doc);
 
 class DatePicker {
+    HTML = [
+        '<div class="date-picker">',
+            '<div class="header">',
+                '<div class="last-year">',
+                    '<span class="i-arrow"></span>',
+                    '<span class="i-arrow"></span>',
+                '</div>',
+                '<div class="last-month">',
+                    '<span class="i-arrow"></span>',
+                '</div>',
+                '<div class="year-month">',
+                    '<span><% this.year %>年</span>',
+                    '<span><% this.month+1 %>月</span>',
+                '</div>',
+                '<div class="next-year">',
+                    '<span class="i-arrow"></span>',
+                    '<span class="i-arrow"></span>',
+                '</div>',
+                '<div class="next-month">',
+                    '<span class="i-arrow"></span>',
+                '</div>',
+            '</div>',
+            '<div class="content">',
+                '<table cellspacing="0" class="calendar">',
+                    '<tbody>',
+                        '<tr>',
+                            '<% for (let day of this.days) { %>',
+                            '<th><% day %></th>',
+                            '<% } %>',
+                        '</tr>',
+                    '</tbody>',
+                '</table>',
+            '</div>',
+            '<div class="bottom">',
+            '</div>',
+        '</div>',
+    ].join('');
+
     constructor() {
+        console.log( this.compiler(this.HTML, {
+            days: ['日', '一', '二', '三', '四', '五', '六']
+        }) );
+
         this.viewModel();
 
         this.Header();
@@ -16,6 +58,35 @@ class DatePicker {
 
         this.datePicker.append(this.header, this.content, this.bottom);
         doc.body.append(this.datePicker);
+    }
+
+    /**
+     * HTML模板编译器
+     * @param {String} html 
+     * @param {Object} options 
+     */
+    compiler(html, options) {
+        const re = /<%([^%>]+)?%>/g;
+        const reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g;
+        
+        let code = 'var r=[];\n';
+        let cursor = 0;
+    
+        function add (line, js) {
+            js? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n') :
+                (code += line != '' ? 'r.push("' + line.replace(/"/g, '\\"') + '");\n' : '');
+            return add;
+        }
+    
+        let match;
+        while (match = re.exec(html)) {
+            add(html.slice(cursor, match.index))(match[1], true);
+            cursor = match.index + match[0].length;
+        }
+        add(html.substr(cursor, html.length - cursor));
+        code += 'return r.join("");';
+
+        return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
     }
 
     onTdClick(e) {
