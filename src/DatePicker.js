@@ -1,27 +1,29 @@
 import './DatePicker.less';
 
+const win = window;
 const doc = document;
 const createElement = doc.createElement.bind(doc);
+const defer = win.requestAnimationFrame || win.webkitRequestAnimationFrame || win.setTimeout;
 
 class DatePicker {
     headerTpl = [
     '<div class="header">',
-        '<div class="last-year">',
+        '<div class="last-year" @click="this.onLastYear()">',
             '<span class="i-arrow"></span>',
             '<span class="i-arrow"></span>',
         '</div>',
-        '<div class="last-month">',
+        '<div class="last-month" @click="this.onLastMonth()">',
             '<span class="i-arrow"></span>',
         '</div>',
         '<div class="year-month">',
             '<span><% this.year %>年 </span>',
             '<span><% this.month+1 %>月</span>',
         '</div>',
-        '<div class="next-year">',
+        '<div class="next-year" @click="this.onNextYear()">',
             '<span class="i-arrow"></span>',
             '<span class="i-arrow"></span>',
         '</div>',
-        '<div class="next-month">',
+        '<div class="next-month" @click="this.onNextMonth()">',
             '<span class="i-arrow"></span>',
         '</div>',
     '</div>',
@@ -41,10 +43,10 @@ class DatePicker {
                     '<% for (let j = 0; j < 7; j++, i++) { %>',
                     '<% if ( new Date().getFullYear()==this.dates[i].year && this.dates[i].month==new Date().getMonth() && this.dates[i].date==new Date().getDate() ) { %>',
                     '<td class="today"><% this.dates[i].date %></td>',
-                    '<% } else if ( new Date().getFullYear()!=this.dates[i].year || this.dates[i].month!=new Date().getMonth()) { %>',
-                    '<td class="other-month"><% this.dates[i].date %></td>',
-                    '<% } else { %>',
+                    '<% } else if ( this.year==this.dates[i].year && this.dates[i].month==this.month) { %>',
                     '<td><% this.dates[i].date %></td>',
+                    '<% } else { %>',
+                    '<td class="other-month"><% this.dates[i].date %></td>',
                     '<% } %>',
                     '<% } %>',
                 '</tr>',
@@ -58,11 +60,11 @@ class DatePicker {
     '<div class="bottom">',
         '<span class="label">时间</span>',
         '<span class="time">',
-            '<input value="<% this.hh %>" type="number" maxlength="2" min="0" max="23" class="tm">',
+            '<input value="<% this.hh %>" type="number" maxlength="2" min="0" max="23" class="tm" @click="this.onFocusT(\'hh\')">',
             '<input value=":" readonly="" class="seq">',
-            '<input value="<% this.mm %>" type="number" maxlength="2" min="0" max="59" class="tm">',
+            '<input value="<% this.mm %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'mm\')">',
             '<input value=":" readonly="" class="seq">',
-            '<input value="<% this.ss %>" type="number" maxlength="2" min="0" max="59" class="tm">',
+            '<input value="<% this.ss %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'ss\')">',
         '</span>',
         '<span class="set-time">',
             '<div class="btn add" @click="this.onUp()"><div class="i-arrow"></div></div>',
@@ -79,31 +81,121 @@ class DatePicker {
     templates = [this.headerTpl, this.contentTpl, this.bottomTpl].join('');
 
     data = (() => {
-        const now = new Date();
-        const dates = this.getDates(now.getFullYear(), now.getMonth());
+        const fmtDate = (obj) => {
+            let curr = new Date();
+
+            if ( obj instanceof Date ) {
+                curr = obj;
+            } else if ( obj instanceof Object ) {
+                const { year, month, date, hh, mm, ss } = obj;
+
+                if(undefined !== year) curr.setFullYear(year);
+                if(undefined !== month) curr.setMonth(month);
+                if(undefined !== date) curr.setDate(date);
+                if(undefined !== hh) curr.setHours(hh);
+                if(undefined !== mm) curr.setMinutes(mm);
+                if(undefined !== ss) curr.setSeconds(ss);
+            }
+
+            return {
+                year: curr.getFullYear(),
+                month: curr.getMonth(),
+                date: curr.getDate(),
+                hh: (''+curr.getHours()).padStart(2, '0'),
+                mm: (''+curr.getMinutes()).padStart(2, '0'),
+                ss: (''+curr.getSeconds()).padStart(2, '0'),
+                dates: this.getDates(curr.getFullYear(), curr.getMonth())
+            };
+        };
 
         return {
-            year: now.getFullYear(),
-            month: now.getMonth(),
-            date: now.getDate(),
-            hh: (''+now.getHours()).padStart(2, '0'),
-            mm: (''+now.getMinutes()).padStart(2, '0'),
-            ss: (''+now.getSeconds()).padStart(2, '0'),
-            days: ['日', '一', '二', '三', '四', '五', '六'],
-            dates,
+            ...fmtDate(new Date()),
 
+            days: ['日', '一', '二', '三', '四', '五', '六'],
+            foucsT: 'hh',
+
+            onLastYear: () => {
+                const year = +this.data.year;
+
+                this.setData({
+                    ...fmtDate({
+                        ...this.data,
+                        year: year - 1
+                    })
+                });
+            },
+            onLastMonth: () => {
+                const month = +this.data.month;
+
+                this.setData({
+                    ...fmtDate({
+                        ...this.data,
+                        month: month - 1
+                    })
+                });
+            },
+            onNextMonth: () => {
+                const month = +this.data.month;
+
+                this.setData({
+                    ...fmtDate({
+                        ...this.data,
+                        month: month + 1
+                    })
+                });
+            },
+            onNextYear: () => {
+                const year = +this.data.year;
+
+                this.setData({
+                    ...fmtDate({
+                        ...this.data,
+                        year: year + 1
+                    })
+                });
+            },
+            onFocusT: (foucsT) => {
+                this.setData({ foucsT });
+            },
             onUp: () => {
-                console.log('Up');
+                const foucsT = this.data.foucsT;
+                const oldVal = +this.data[foucsT];
+                const newVal = oldVal + 1;
+
+                if ( 'hh'===foucsT && newVal < 24 ) {
+                } else if ( ('mm'===foucsT||foucsT==='ss') && newVal < 60 ) {
+                } else {
+                    return false;
+                }
+
+                this.setData({
+                    [foucsT]: (''+newVal).padStart(2, '0')
+                });
+
                 return false;
             },
             onDown: () => {
-                console.log('Down');
+                const foucsT = this.data.foucsT;
+                const oldVal = +this.data[foucsT];
+                const newVal = oldVal - 1;
+
+                if ( newVal > -1 ) {
+                    this.setData({
+                        [foucsT]: (''+newVal).padStart(2, '0')
+                    });
+                }
+
+                return false;
             },
             onClear: () => {
                 console.log('清空');
             },
             onToday: () => {
-                console.log('今天');
+                this.setData({
+                    ...fmtDate(new Date())
+                });
+
+                return false;
             },
             onConfirm: () => {
                 console.log('确认');
@@ -118,6 +210,7 @@ class DatePicker {
 
         this.datePicker.classList.add('date-picker');
         this.datePicker.innerHTML = this.compiler(this.templates, this.data);
+
         this.datePicker.onclick = (e) => {
             for (let target = e.target; target !== this.datePicker; target = target.parentElement) {
                 // 事件冒泡
@@ -154,6 +247,10 @@ class DatePicker {
         };
 
         this.data = options;
+
+        defer(() => {
+            this.datePicker.innerHTML = this.compiler(this.templates, this.data);
+        });
     }
 
     /**
