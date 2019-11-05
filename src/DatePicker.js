@@ -1,3 +1,4 @@
+import './polyfill';
 import './DatePicker.less';
 
 const win = window;
@@ -115,15 +116,19 @@ class DatePicker {
             foucsT: 'hh',
 
             onTD: (e, year, month, date) => {
-                const td = Array.from(this.datePicker.querySelectorAll('td'));
+                const td = this.datePicker.querySelectorAll('td');
 
-                td.map(el => el.classList.remove('active'));
+                for ( const el of td ) {
+                    el.classList.remove('active');
+                }
+
+                this.setData({ date });
 
                 if ( this.data.year==year && month==this.data.month ) {
                     e.target.classList.toggle('active');
                 } else {
                     this.setData({ 
-                        year, month, date, 
+                        year, month,
                         dates: this.getDates(year, month),
                     });
                 }
@@ -202,26 +207,47 @@ class DatePicker {
                 return false;
             },
             onClear: () => {
-                console.log('清空');
+                if ( this.targetElement instanceof HTMLInputElement ) {
+                    this.targetElement.value = '';
+                }
+
+                this.destory();
             },
             onToday: () => {
                 this.setData({
                     ...fmtDate(new Date())
                 });
 
-                return false;
+                this.data.onConfirm();
             },
             onConfirm: () => {
-                console.log('确认');
+                if ( this.targetElement instanceof HTMLInputElement ) {
+                    let value = this.data.fmt.toLowerCase();
+
+                    value = value.replace('yyyy', this.data.year)
+                                .replace('mm', this.data.month)
+                                .replace('dd', this.data.date)
+                                .replace('hh', this.data.hh)
+                                .replace('mm', this.data.mm)
+                                .replace('ss', this.data.ss)
+
+                    this.targetElement.value = value;
+                }
+
+                this.destory();
             }
         };
     })(); 
 
-    constructor() {
-        this.datePicker = createElement('div');
+    constructor({left, top, targetElement, fmt='YYYY-MM-DD hh:mm:ss'} = {}) {
+        this.targetElement = targetElement;
 
+        this.datePicker = createElement('div');
         this.datePicker.classList.add('date-picker');
-        this.datePicker.innerHTML = this.compiler(this.templates, this.data);
+
+        // 组件显示的具体位置
+        if (left) this.datePicker.style.left = left;
+        if (top) this.datePicker.style.top = top;
 
         this.datePicker.onclick = (e) => {
             for (let target = e.target; target !== this.datePicker; target = target.parentElement) {
@@ -231,8 +257,14 @@ class DatePicker {
                 
                 if ( false === fn.apply(this.data, [e]) ) break;  // 如果函数执行结果返回为 false 则事件不再往上冒泡
             }
+
+            e[this.constructor.name] = this;
         };
 
+        // 将数据渲染到模板中
+        this.setData({ fmt });
+
+        // 添加到页面DOM中
         doc.body.append(this.datePicker);
     }
 
@@ -248,8 +280,19 @@ class DatePicker {
 
         this.data = options;
 
+        if ( ! this.setData.hasOwnProperty('cache') ) {
+            this.setData.cache = {
+                lastHTML: ''
+            }
+        }
+
         defer(() => {
-            this.datePicker.innerHTML = this.compiler(this.templates, this.data);
+            const html = this.compiler(this.templates, this.data);
+
+            if (html !== this.setData.cache.lastHTML) {
+                this.datePicker.innerHTML = html;
+                this.setData.cache.lastHTML = html;
+            }
         });
     }
 
@@ -320,8 +363,31 @@ class DatePicker {
     
         return dates;
     }
+
+    destory() {
+        this.datePicker.remove();
+    }
 }
 
-window.addEventListener('load', ()=>{
-    new DatePicker();
+document.addEventListener('click', (e) => {
+    const target = e.target;
+    const datePickers = document.querySelectorAll('.date-picker');
+
+    if ( ! (e.DatePicker instanceof DatePicker) ) {
+        for ( const datePicker of datePickers ) {
+            datePicker.remove();
+        }
+    }
+
+    if ('DatePicker' === target.getAttribute('type')) {
+        const { offsetLeft, offsetTop } = target;
+        const { height, borderWidth, paddingTop, paddingBottom } = getComputedStyle(target);
+        const sumHeight = parseInt(height) + 2*parseInt(borderWidth) + parseInt(paddingTop) + parseInt(paddingBottom);
+
+        new DatePicker({
+            left: offsetLeft+'px', 
+            top: offsetTop+sumHeight+'px',
+            targetElement: target,
+        });
+    }
 });
