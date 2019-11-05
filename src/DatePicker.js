@@ -4,60 +4,196 @@ const doc = document;
 const createElement = doc.createElement.bind(doc);
 
 class DatePicker {
-    HTML = [
-        '<div class="date-picker">',
-            '<div class="header">',
-                '<div class="last-year">',
-                    '<span class="i-arrow"></span>',
-                    '<span class="i-arrow"></span>',
-                '</div>',
-                '<div class="last-month">',
-                    '<span class="i-arrow"></span>',
-                '</div>',
-                '<div class="year-month">',
-                    '<span><% this.year %>年</span>',
-                    '<span><% this.month+1 %>月</span>',
-                '</div>',
-                '<div class="next-year">',
-                    '<span class="i-arrow"></span>',
-                    '<span class="i-arrow"></span>',
-                '</div>',
-                '<div class="next-month">',
-                    '<span class="i-arrow"></span>',
-                '</div>',
-            '</div>',
-            '<div class="content">',
-                '<table cellspacing="0" class="calendar">',
-                    '<tbody>',
-                        '<tr>',
-                            '<% for (let day of this.days) { %>',
-                            '<th><% day %></th>',
-                            '<% } %>',
-                        '</tr>',
-                    '</tbody>',
-                '</table>',
-            '</div>',
-            '<div class="bottom">',
-            '</div>',
+    headerTpl = [
+    '<div class="header">',
+        '<div class="last-year">',
+            '<span class="i-arrow"></span>',
+            '<span class="i-arrow"></span>',
         '</div>',
+        '<div class="last-month">',
+            '<span class="i-arrow"></span>',
+        '</div>',
+        '<div class="year-month">',
+            '<span><% this.year %>年 </span>',
+            '<span><% this.month+1 %>月</span>',
+        '</div>',
+        '<div class="next-year">',
+            '<span class="i-arrow"></span>',
+            '<span class="i-arrow"></span>',
+        '</div>',
+        '<div class="next-month">',
+            '<span class="i-arrow"></span>',
+        '</div>',
+    '</div>',
     ].join('');
 
+    contentTpl = [
+    '<div class="content">',
+        '<table cellspacing="0" class="calendar">',
+            '<tbody>',
+                '<tr>',
+                    '<% for (let day of this.days) { %>',
+                    '<th><% day %></th>',
+                    '<% } %>',
+                '</tr>',
+                '<% for (let i = 0; i < this.dates.length;) { %>',
+                '<tr>',
+                    '<% for (let j = 0; j < 7; j++, i++) { %>',
+                    '<% if ( new Date().getFullYear()==this.dates[i].year && this.dates[i].month==new Date().getMonth() && this.dates[i].date==new Date().getDate() ) { %>',
+                    '<td class="today"><% this.dates[i].date %></td>',
+                    '<% } else if ( new Date().getFullYear()!=this.dates[i].year || this.dates[i].month!=new Date().getMonth()) { %>',
+                    '<td class="other-month"><% this.dates[i].date %></td>',
+                    '<% } else { %>',
+                    '<td><% this.dates[i].date %></td>',
+                    '<% } %>',
+                    '<% } %>',
+                '</tr>',
+                '<% } %>',
+            '</tbody>',
+        '</table>',
+    '</div>',
+    ].join('');
+
+    bottomTpl = [
+    '<div class="bottom">',
+        '<span class="label">时间</span>',
+        '<span class="time">',
+            '<input value="<% this.hh %>" type="number" maxlength="2" min="0" max="23" class="tm">',
+            '<input value=":" readonly="" class="seq">',
+            '<input value="<% this.mm %>" type="number" maxlength="2" min="0" max="59" class="tm">',
+            '<input value=":" readonly="" class="seq">',
+            '<input value="<% this.ss %>" type="number" maxlength="2" min="0" max="59" class="tm">',
+        '</span>',
+        '<span class="set-time">',
+            '<div class="btn add" @click="this.onUp()"><div class="i-arrow"></div></div>',
+            '<div class="btn sub" @click="this.onDown()"><div class="i-arrow"></div></div>',
+        '</span>',
+        '<div class="control">',
+            '<div class="btn" @click="this.onClear()">清空</div>',
+            '<div class="btn" @click="this.onToday()">今天</div>',
+            '<div class="btn" @click="this.onConfirm()">确定</div>',
+        '</div>',
+    '</div>',
+    ].join('');
+
+    templates = [this.headerTpl, this.contentTpl, this.bottomTpl].join('');
+
+    data = (() => {
+        const now = new Date();
+        const dates = this.getDates(now.getFullYear(), now.getMonth());
+
+        return {
+            year: now.getFullYear(),
+            month: now.getMonth(),
+            date: now.getDate(),
+            hh: (''+now.getHours()).padStart(2, '0'),
+            mm: (''+now.getMinutes()).padStart(2, '0'),
+            ss: (''+now.getSeconds()).padStart(2, '0'),
+            days: ['日', '一', '二', '三', '四', '五', '六'],
+            dates,
+
+            onUp: () => {
+                console.log('Up');
+                return false;
+            },
+            onDown: () => {
+                console.log('Down');
+            },
+            onClear: () => {
+                console.log('清空');
+            },
+            onToday: () => {
+                console.log('今天');
+            },
+            onConfirm: () => {
+                console.log('确认');
+            }
+        };
+    })(); 
+
+    events = {};
+
     constructor() {
-        console.log( this.compiler(this.HTML, {
-            days: ['日', '一', '二', '三', '四', '五', '六']
-        }) );
-
-        this.viewModel();
-
-        this.Header();
-        this.Content();
-        this.Bottom();
-
         this.datePicker = createElement('div');
-        this.datePicker.classList.add('date-picker');
 
-        this.datePicker.append(this.header, this.content, this.bottom);
+        this.datePicker.classList.add('date-picker');
+        this.datePicker.innerHTML = this.compiler(this.templates, this.data);
+        this.datePicker.onclick = (e) => {
+            for (let target = e.target; target !== this.datePicker; target = target.parentElement) {
+                // 事件冒泡
+                const exec = target.getAttribute('@click');
+                const fn = new Function('e', ';return '+exec+';');
+                
+                if ( false === fn.apply(this.data, [e]) ) break;  // 如果函数执行结果返回为 false 则事件不再往上冒泡
+            }
+        };
+
         doc.body.append(this.datePicker);
+
+        // this.viewModel();
+
+        // this.Header();
+        // this.Content();
+        // this.Bottom();
+
+        // this.datePicker = createElement('div');
+        // this.datePicker.classList.add('date-picker');
+
+        // this.datePicker.append(this.header, this.content, this.bottom);
+        // doc.body.append(this.datePicker);
+    }
+
+    /**
+     * 
+     * @param {Object} data 
+     */
+    setData(data) {
+        const options = {
+            ...this.data,
+            ...data
+        };
+
+        this.data = options;
+    }
+
+    /**
+     * 订阅事件
+     * @param {String} eventName 
+     * @param {Function} callback 
+     */
+    subscribe(eventName, callback) {
+        if( !this.events.hasOwnProperty(eventName) ) this.events[eventName] = [];
+        this.events[eventName].push(callback);
+    }
+
+    /**
+     * 取消订阅
+     * @param {String} eventName 
+     * @param {Function} callback 
+     */
+    unsubscribe(eventName, callback) {
+        let index = 0, length = 0;
+
+        if( this.events.hasOwnProperty(eventName) ) {
+            length = this.events[eventName].length;
+            for(; index<length; index++) {
+                if(this.events[eventName][index] === callback) {
+                    this.events[eventName].splice(index, 1);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 发布事件
+     * @param {String} eventName 
+     * @param {...any} data 
+     */
+    public(eventName, ...data) {
+        if(this.events.hasOwnProperty(eventName)) {
+            this.events[eventName].map(event => event.apply(this, data));
+        }
     }
 
     /**
@@ -87,6 +223,45 @@ class DatePicker {
         code += 'return r.join("");';
 
         return new Function(code.replace(/[\r\t\n]/g, '')).apply(options);
+    }
+
+    /**
+     * 获取当月的所有日期
+     * @param {Number} year 
+     * @param {Number} month 
+     */
+    getDates(year, month) {
+        const dates = [];
+        const thisMonth = new Date(year, month);
+        const first = thisMonth.getDay();
+    
+        thisMonth.setDate(1-first);
+
+        while ( +thisMonth < +new Date(year, month+1) ) {
+            dates.push({
+                year: thisMonth.getFullYear(),  // 年
+                month: thisMonth.getMonth(),    // 月
+                date: thisMonth.getDate(),      // 日
+                day: thisMonth.getDay(),        // 星期
+            });
+    
+            thisMonth.setDate( thisMonth.getDate() + 1 );
+        }
+    
+        const len = dates.length;
+    
+        for (let i = 6 - dates[len-1].day; i>0; i-- ) {
+            dates.push({
+                year: thisMonth.getFullYear(),  // 年
+                month: thisMonth.getMonth(),    // 月
+                date: thisMonth.getDate(),      // 日
+                day: thisMonth.getDay(),        // 星期
+            });
+    
+            thisMonth.setDate( thisMonth.getDate() + 1 );
+        }
+    
+        return dates;
     }
 
     onTdClick(e) {
@@ -260,40 +435,6 @@ class DatePicker {
             tr.append(td);
             if (6 === _day) tbody.append(tr);
         }
-    }
-
-    getDates(year, month) {
-        const dates = [];
-        const thisMonth = new Date(year, month);
-        const first = thisMonth.getDay();
-    
-        thisMonth.setDate(1-first);
-
-        while ( +thisMonth < +new Date(year, month+1) ) {
-            dates.push({
-                year: thisMonth.getFullYear(),  // 年
-                month: thisMonth.getMonth(),    // 月
-                date: thisMonth.getDate(),      // 日
-                day: thisMonth.getDay(),        // 星期
-            });
-    
-            thisMonth.setDate( thisMonth.getDate() + 1 );
-        }
-    
-        const len = dates.length;
-    
-        for (let i = 6 - dates[len-1].day; i>0; i-- ) {
-            dates.push({
-                year: thisMonth.getFullYear(),  // 年
-                month: thisMonth.getMonth(),    // 月
-                date: thisMonth.getDate(),      // 日
-                day: thisMonth.getDay(),        // 星期
-            });
-    
-            thisMonth.setDate( thisMonth.getDate() + 1 );
-        }
-    
-        return dates;
     }
 
     Header() {

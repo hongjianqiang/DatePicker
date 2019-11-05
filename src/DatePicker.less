@@ -32,8 +32,7 @@
             user-select:none;
             cursor: pointer;
 
-            .i-arrow:nth-child(1) { transform: rotate(-135deg); }
-            .i-arrow:nth-child(2) { transform: rotate(-135deg); margin-left: -8px; }
+            .i-arrow { transform: rotate(-135deg); }
         }
     
         .last-month {
@@ -76,8 +75,7 @@
             user-select:none;
             cursor: pointer;
 
-            .i-arrow:nth-child(1) { transform: rotate(45deg); }
-            .i-arrow:nth-child(2) { transform: rotate(45deg); margin-left: -8px; }
+            .i-arrow { transform: rotate(45deg); }
         }
     }
     
@@ -91,7 +89,7 @@
 
             .other-month { color: #bbb; }
             .active { background: #BDEBEE; }
-            .today { color: red; }
+            .today { color: red; font-weight: bold; }
             
             tr:first-child { background-color: #BDEBEE; }   
             td { cursor: pointer; }
@@ -101,6 +99,12 @@
     
     .bottom {
         font-size: 14px;
+
+        &:after {  // 清除浮动
+            content: '';
+            display: block;
+            clear: both;
+        }
 
         .label {
             float: left;
