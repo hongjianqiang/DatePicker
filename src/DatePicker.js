@@ -312,9 +312,21 @@ class DatePicker {
         const identify = [];
         const target = sourceElem.cloneNode(false);
 
+        function* generateID() {
+            let uniqueID = parseInt('aaaa', 36) - 1;
+
+            while(true) {
+                uniqueID++;
+                yield 'event_'+uniqueID.toString(36);
+            }
+        }
+
+        const genID = generateID();
+
+
         // 先将HTML片段中的含有 @click @change 等元素都打上唯一标识
         targetHtml = targetHtml.replace(new RegExp(reg, 'g'), function(found) {
-            const ID = `id_${Math.random().toString(36).substring(2)}`;
+            const ID = genID.next().value;
             const divide = found.match(reg);
 
             if( null !== divide ) {
@@ -334,7 +346,7 @@ class DatePicker {
 
         this.patch(sourceElem, target);
 
-        // 根据唯一标识绑定事件，然后删除元素的唯一表识
+        // 根据唯一标识绑定事件
         for (const item of identify ) {
             const elem = sourceElem.querySelector(`[${item.ID}]`);
 
@@ -343,7 +355,7 @@ class DatePicker {
                 fn.apply(this.data, [e]);
             };
 
-            elem.removeAttribute(item.ID);
+            // elem.removeAttribute(item.ID);
         }
     }
 
