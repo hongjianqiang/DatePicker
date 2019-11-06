@@ -297,23 +297,23 @@ class DatePicker {
         this.data = options;
 
         defer(() => {
-            const html = this.compiler(this.templates, this.data);
-            this.render(this.datePicker, html);
+            const targetHtml = this.compiler(this.templates, this.data);
+            this.render(this.datePicker, targetHtml);
         });
     }
 
     /**
      * 渲染
-     * @param {HTMLElement} elem 
-     * @param {String} html 
+     * @param {HTMLElement} sourceElem 
+     * @param {String} targetHtml 
      */
-    render(elem, html) {
+    render(sourceElem, targetHtml) {
         const reg = /@([a-zA-Z_]\w*)="([^"]+)"/;
         const identify = [];
-        const target = elem.cloneNode(false);
+        const target = sourceElem.cloneNode(false);
 
         // 先将HTML片段中的含有 @click @change 等元素都打上唯一标识
-        html = html.replace(new RegExp(reg, 'g'), function(found) {
+        targetHtml = targetHtml.replace(new RegExp(reg, 'g'), function(found) {
             const ID = `id_${Math.random().toString(36).substring(2)}`;
             const divide = found.match(reg);
 
@@ -330,11 +330,13 @@ class DatePicker {
             }
         });
 
-        target.innerHTML = html;
+        target.innerHTML = targetHtml;
+
+        this.patch(sourceElem, target);
 
         // 根据唯一标识绑定事件，然后删除元素的唯一表识
         for (const item of identify ) {
-            const elem = target.querySelector(`[${item.ID}]`);
+            const elem = sourceElem.querySelector(`[${item.ID}]`);
 
             elem[item.event] = (e) => {
                 const fn = new Function('e', item.exec);
@@ -343,8 +345,6 @@ class DatePicker {
 
             elem.removeAttribute(item.ID);
         }
-
-        this.patch(elem, target);
     }
 
     /**
