@@ -83,7 +83,11 @@ class DatePicker {
     '</div>',
     ].join('');
 
-    templates = [this.headerTpl, this.contentTpl, this.bottomTpl].join('');
+    templates = [
+        this.headerTpl, 
+        this.contentTpl, 
+        this.bottomTpl,
+    ].join('');
 
     data = (() => {
         const fmtDate = (obj) => {
@@ -310,19 +314,18 @@ class DatePicker {
     render(sourceElem, targetHtml) {
         const reg = /@([a-zA-Z_]\w*)="([^"]+)"/;
         const identify = [];
-        const target = sourceElem.cloneNode(false);
+        const targetElem = sourceElem.cloneNode(false);
 
         function* generateID() {
             let uniqueID = parseInt('aaaa', 36) - 1;
 
             while(true) {
                 uniqueID++;
-                yield 'event_'+uniqueID.toString(36);
+                yield 'e_'+uniqueID.toString(36);
             }
         }
 
         const genID = generateID();
-
 
         // 先将HTML片段中的含有 @click @change 等元素都打上唯一标识
         targetHtml = targetHtml.replace(new RegExp(reg, 'g'), function(found) {
@@ -342,9 +345,9 @@ class DatePicker {
             }
         });
 
-        target.innerHTML = targetHtml;
+        targetElem.innerHTML = targetHtml;
 
-        this.patch(sourceElem, target);
+        this.patch(sourceElem, targetElem);
 
         // 根据唯一标识绑定事件
         for (const item of identify ) {
@@ -354,65 +357,27 @@ class DatePicker {
                 const fn = new Function('e', item.exec);
                 fn.apply(this.data, [e]);
             };
-
-            // elem.removeAttribute(item.ID);
         }
     }
 
     /**
-     * 将 source 不同的部分，变更为 target 部分
-     * @param {HTMLElement} source 
-     * @param {HTMLElement} target 
+     * 将 sourceElem 不同的部分，变更为 targetElem 部分
+     * @param {HTMLElement} sourceElem 
+     * @param {HTMLElement} targetElem 
      */
-    patch(source, target) {
-        if ( source.isEqualNode(target) ) return;
+    patch(sourceElem, targetElem) {
+        if ( sourceElem.innerHTML === targetElem.innerHTML ) return;
 
-        if ( source.nodeName !== target.nodeName ) {
-            const node = target.cloneNode(true);
-            return source.parentNode.replaceChild(node, source);
+        const sourceLen = sourceElem.children.length;
+        const targetLen = targetElem.children.length;
+
+        if (sourceLen !== targetLen) return sourceElem.innerHTML = targetElem.innerHTML;
+
+        for ( let i = 0; i < targetLen; i++ ) {
+            this.patch( sourceElem.children[i], targetElem.children[i] );
         }
 
-        if ( 1 === target.nodeType ) {
-            // 元素节点
-            if ( target.childNodes.length ) {
-                const sourceAttrs = source.getAttributeNames();
-                const targetAttrs = target.getAttributeNames();
-                const maxAttrsLen = Math.max(sourceAttrs.length, targetAttrs.length);
-
-                for (let i = 0; i < maxAttrsLen; i++) {
-                    // 将原来元素的属性值设为目标元素的属性值
-                    if ( targetAttrs[i] ) {
-                        source.setAttribute(targetAttrs[i], target.getAttribute(targetAttrs[i]));
-                    } else {
-                        source.removeAttribute(sourceAttrs[i]);
-                    }
-                }
-
-                const maxNodesLen = Math.max(source.childNodes.length, target.childNodes.length);
-
-                for (let i = 0; i < maxNodesLen; i++) {
-                    if ( target.childNodes[i] ) {
-                        if ( ! source.childNodes[i] ) {
-                            const node = target.childNodes[i].cloneNode(true);
-                            source.appendChild(node);
-                        }
-                        this.patch(source.childNodes[i], target.childNodes[i]);
-                    } else {
-                        const len = source.childNodes.length;
-                        source.childNodes[len-1].remove();
-                    }
-                }
-            } else {
-                // 没有子节点，直接替换
-                const node = target.cloneNode(true);
-                return source.parentNode.replaceChild(node, source);
-            }
-
-        } else {
-            // 其他节点
-            const node = target.cloneNode(true);
-            return source.parentNode.replaceChild(node, source);
-        }
+        return sourceElem.innerHTML = targetElem.innerHTML;
     }
 
     /**
@@ -494,6 +459,7 @@ document.addEventListener('click', (e) => {
 
     if ( ! (e.DatePicker instanceof DatePicker) ) {
         for ( const datePicker of datePickers ) {
+            console.dir(datePicker);
             datePicker.instance.destory();
         }
     }
