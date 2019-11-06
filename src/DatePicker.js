@@ -296,18 +296,11 @@ class DatePicker {
 
         this.data = options;
 
-        if ( ! this.setData.hasOwnProperty('cache') ) {
-            this.setData.cache = {
-                lastHTML: ''
-            }
-        }
-
         defer(() => {
             const html = this.compiler(this.templates, this.data);
 
-            if (html !== this.setData.cache.lastHTML) {
+            if (html !== this.datePicker.innerHTML) {
                 this.datePicker.innerHTML = html;
-                this.setData.cache.lastHTML = html;
             }
         });
     }
@@ -381,9 +374,6 @@ class DatePicker {
     }
 
     destory() {
-        this.setData.cache = {
-            lastHTML: ''
-        }
         this.datePicker.remove();
     }
 }
