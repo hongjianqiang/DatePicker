@@ -246,6 +246,7 @@ class DatePicker {
             onClear: () => {
                 if ( this.targetElement instanceof HTMLInputElement ) {
                     this.targetElement.value = '';
+                    this.targetElement.dispatchEvent(new Event('input'));  // 分发事件，让Vue可以双向绑定数据
                 }
 
                 this.destory();
