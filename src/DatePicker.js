@@ -65,11 +65,11 @@ class DatePicker {
     '<div class="bottom">',
         '<span class="label">时间</span>',
         '<span class="time">',
-            '<input value="<% this.hh %>" type="number" maxlength="2" min="0" max="23" class="tm" @click="this.onFocusT(\'hh\')">',
+            '<input value="<% this.hh %>" type="number" maxlength="2" min="0" max="23" class="tm" @click="this.onFocusT(\'hh\')" @change="this.onChangeT(e, \'hh\')">',
             '<input value=":" readonly="" class="seq">',
-            '<input value="<% this.mm %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'mm\')">',
+            '<input value="<% this.mm %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'mm\')" @change="this.onChangeT(e, \'mm\')">',
             '<input value=":" readonly="" class="seq">',
-            '<input value="<% this.ss %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'ss\')">',
+            '<input value="<% this.ss %>" type="number" maxlength="2" min="0" max="59" class="tm" @click="this.onFocusT(\'ss\')" @change="this.onChangeT(e, \'ss\')">',
         '</span>',
         '<span class="set-time">',
             '<div class="btn add" @click="this.onUp()"><div class="i-arrow"></div></div>',
@@ -121,7 +121,7 @@ class DatePicker {
             ...fmtDate(new Date()),
 
             days: ['日', '一', '二', '三', '四', '五', '六'],
-            foucsT: 'hh',
+            focusT: 'hh',
 
             onTD: (e, year, month, date) => {
                 const td = this.datePicker.querySelectorAll('td');
@@ -181,34 +181,63 @@ class DatePicker {
                     })
                 });
             },
-            onFocusT: (foucsT) => {
-                this.setData({ foucsT });
+            onChangeT: (e, focusT) => {
+                let value = e.target.value;
+                let newVal = 0;
+
+                switch (focusT) {
+                    case 'hh':
+                        if ( 0 <= +value && +value <= 23 ) {
+                            newVal = value;
+                        }
+                        break;
+
+                    case 'mm':
+                        if ( 0 <= +value && +value <= 59 ) {
+                            newVal = value;
+                        }
+                        break;
+
+                    case 'ss':
+                        if ( 0 <= +value && +value <= 59 ) {
+                            newVal = value;
+                        }
+                        break;
+                }
+
+                this.setData({ 
+                    [focusT]: (''+newVal).padStart(2, '0'),
+                    focusT 
+                });
+            },
+            onFocusT: (focusT) => {
+                this.setData({ focusT });
             },
             onUp: () => {
-                const foucsT = this.data.foucsT;
-                const oldVal = +this.data[foucsT];
+                const focusT = this.data.focusT;
+                const oldVal = +this.data[focusT];
                 const newVal = oldVal + 1;
 
-                if ( 'hh'===foucsT && newVal < 24 ) {
-                } else if ( ('mm'===foucsT||foucsT==='ss') && newVal < 60 ) {
+                if ( 'hh'===focusT && newVal < 24 ) {
+                } else if ( ('mm'===focusT||focusT==='ss') && newVal < 60 ) {
                 } else {
                     return false;
                 }
 
                 this.setData({
-                    [foucsT]: (''+newVal).padStart(2, '0')
+                    [focusT]: (''+newVal).padStart(2, '0')
                 });
 
                 return false;
             },
             onDown: () => {
-                const foucsT = this.data.foucsT;
-                const oldVal = +this.data[foucsT];
+                const focusT = this.data.focusT;
+                const oldVal = +this.data[focusT];
                 const newVal = oldVal - 1;
 
                 if ( newVal > -1 ) {
                     this.setData({
-                        [foucsT]: (''+newVal).padStart(2, '0')
+                        [focusT]: (''+newVal).padStart(2, '0')
                     });
                 }
 
@@ -353,6 +382,8 @@ class DatePicker {
         for (const item of identify ) {
             const elem = sourceElem.querySelector(`[${item.ID}]`);
 
+            if ( null === elem ) break;
+
             elem[item.event] = (e) => {
                 const fn = new Function('e', item.exec);
                 fn.apply(this.data, [e]);
@@ -463,7 +494,6 @@ document.addEventListener('click', (e) => {
 
     if ( ! (e.DatePicker instanceof DatePicker) ) {
         for ( const datePicker of datePickers ) {
-            console.dir(datePicker);
             datePicker.instance.destory();
         }
     }
