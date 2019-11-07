@@ -292,14 +292,6 @@ class DatePicker {
         if (top) this.datePicker.style.top = top;
 
         this.datePicker.onclick = (e) => {
-            for (let target = e.target; target !== this.datePicker; target = target.parentElement) {
-                // 事件冒泡
-                const exec = target.getAttribute('@click');
-                const fn = new Function('e', ';return '+exec+';');
-                
-                if ( false === fn.apply(this.data, [e]) ) break;  // 如果函数执行结果返回为 false 则事件不再往上冒泡
-            }
-
             e[this.constructor.name] = this;
         };
 
