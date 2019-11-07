@@ -35,7 +35,11 @@
     <p>
         <h4>一般使用</h4>
         <input type="DatePicker">
-        <pre>&lt;input type="DatePicker"&gt;</pre>
+        <pre>
+&lt;script type="text/javascript" src="../lib/DatePicker.min.js"&gt;&lt;/script&gt;
+
+&lt;input type="DatePicker"&gt;
+        </pre>
     </p>
 
     <hr>
@@ -46,8 +50,9 @@
         <span>输入的日期是：{{myDate}}</span>
         <pre>
 &lt;input type="DatePicker" v-model="myDate"&gt;
-&lt;span&gt;输入的日期是：{{myDate}}&lt;/span&gt;
+&lt;span&gt;输入的日期是：{{'{'+'{myDate}'+'}'}}&lt;/span&gt;
 
+&lt;script type="text/javascript" src="../lib/DatePicker.min.js"&gt;&lt;/script&gt;
 &lt;script&gt;
     const app = new Vue({
         el: '#app',
