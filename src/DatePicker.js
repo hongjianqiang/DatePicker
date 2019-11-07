@@ -371,13 +371,19 @@ class DatePicker {
         const sourceLen = sourceElem.children.length;
         const targetLen = targetElem.children.length;
 
-        if (sourceLen !== targetLen) return sourceElem.innerHTML = targetElem.innerHTML;
+        if (sourceLen !== targetLen) {
+            return sourceElem.innerHTML = targetElem.innerHTML;
+        }
 
         for ( let i = 0; i < targetLen; i++ ) {
             this.patch( sourceElem.children[i], targetElem.children[i] );
         }
 
-        return sourceElem.innerHTML = targetElem.innerHTML;
+        if ( sourceElem.innerHTML === targetElem.innerHTML ) {
+            return;
+        } else {
+            return sourceElem.innerHTML = targetElem.innerHTML;
+        }
     }
 
     /**
