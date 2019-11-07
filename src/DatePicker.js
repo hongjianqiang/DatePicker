@@ -366,7 +366,7 @@ class DatePicker {
      * @param {HTMLElement} targetElem 
      */
     patch(sourceElem, targetElem) {
-        if ( sourceElem.innerHTML === targetElem.innerHTML ) return;
+        if ( sourceElem.outerHTML === targetElem.outerHTML ) return;
 
         const sourceLen = sourceElem.children.length;
         const targetLen = targetElem.children.length;
@@ -375,14 +375,12 @@ class DatePicker {
             return sourceElem.innerHTML = targetElem.innerHTML;
         }
 
-        for ( let i = 0; i < targetLen; i++ ) {
-            this.patch( sourceElem.children[i], targetElem.children[i] );
+        if( 0 === targetLen && sourceElem.outerHTML !== targetElem.outerHTML ) {
+            return sourceElem.outerHTML = targetElem.outerHTML;
         }
 
-        if ( sourceElem.innerHTML === targetElem.innerHTML ) {
-            return;
-        } else {
-            return sourceElem.innerHTML = targetElem.innerHTML;
+        for ( let i = 0; i < targetLen; i++ ) {
+            this.patch( sourceElem.children[i], targetElem.children[i] );
         }
     }
 
