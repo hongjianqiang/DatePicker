@@ -6,42 +6,68 @@
     <link rel="shortcut icon" href="favicon.png">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0,shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>一个包含日期和时间的纯JS日期控件</title>
+    <title>一个包含日期和时间的纯JS日期控件，不依赖任何库或框架，方便集成。</title>
     <!--关闭缓存-->
     <meta http-equiv="Cache-Control" content="no-cache">
-    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
     <style>
+        pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
         input {
             border: #999 1px solid;
             height: 20px;
             width: 150px;
         }
+        .center { text-align: center; }
     </style>
+    <script src="https://cdn.bootcss.com/vue/2.6.10/vue.min.js"></script>
 </head>
 
 <body>
-    <div id="app">
-        <input type="DatePicker" v-model="message">
-        <p>Message is: {{ message }}</p>
+    <h3 class="center">一个包含日期和时间的纯JS日期控件，不依赖任何库或框架，方便集成。</h3>
 
-        <p>
-            <input type="DatePicker">
-            <input type="DatePicker">
-        </p>
-        <p>
-            <input type="DatePicker">
-            <input type="DatePicker">
-        </p>
-    </div>
-    <script>
+    <p>
+        </p><h4>一般使用</h4>
+        <input type="DatePicker">
+        <pre>&lt;input type="DatePicker"&gt;</pre>
+    <p></p>
+
+    <hr>
+
+    <div id="app">
+        <h4>配合Vue使用</h4>
+        <input type="DatePicker" v-model="myDate">
+        <span>输入的日期是：{{myDate}}</span>
+        <pre>
+&lt;input type="DatePicker" v-model="myDate"&gt;
+&lt;span&gt;输入的日期是：{{myDate}}&lt;/span&gt;
+
+&lt;script&gt;
     const app = new Vue({
         el: '#app',
         data: {
-            message: ''
+            myDate: ''
         }
     });
     window.app = app;
+&lt;/script&gt;
+        </pre>
+    </div>
+    <script>
+        const app = new Vue({
+            el: '#app',
+            data: {
+                myDate: ''
+            }
+        });
+        window.app = app;
     </script>
+    
 <script type="text/javascript" src="../lib/DatePicker.min.js"></script></body>
 
 </html>
