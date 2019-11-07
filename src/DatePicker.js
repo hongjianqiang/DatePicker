@@ -269,6 +269,7 @@ class DatePicker {
                                 .replace('ss', this.data.ss)
 
                     this.targetElement.value = value;
+                    this.targetElement.dispatchEvent(new Event('input'));  // 分发事件，让Vue可以双向绑定数据
                 }
 
                 this.destory();
@@ -510,3 +511,5 @@ document.addEventListener('click', (e) => {
         });
     }
 });
+
+export default DatePicker;
