@@ -17,7 +17,7 @@ class DatePicker {
             '<span class="i-arrow"></span>',
         '</div>',
         '<div class="year-month">',
-            '<span><% this.year %>年 </span>',
+            '<span><% this.year %>年</span> ',
             '<span><% this.month+1 %>月</span>',
         '</div>',
         '<div class="next-year" @click="this.onNextYear()">',
