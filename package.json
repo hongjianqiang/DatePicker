@@ -1,12 +1,12 @@
 {
   "name": "date-picker",
   "version": "1.0.0",
-  "description": "一个包含日期和时间的纯JS日期控件",
+  "description": "一个包含日期和时间的纯JS日期控件，不依赖任何库或框架，方便集成。",
   "main": "lib/DatePicker.min.js",
   "scripts": {
     "dev": "node build/server.js",
-    "build": "rimraf ./lib && webpack --config build/webpack.prod.js",
-    "clean": "rimraf ./lib"
+    "build": "npm run clean && webpack --config build/webpack.prod.js",
+    "clean": "rimraf ./lib && rimraf ./demo"
   },
   "repository": {
     "type": "git",
