@@ -281,6 +281,7 @@ class DatePicker {
     })(); 
 
     constructor({left, top, targetElement, fmt='YYYY-MM-DD hh:mm:ss'} = {}) {
+        this.prefix = Math.random().toString(36).substring(2).slice(0,2);
         this.targetElement = targetElement;
 
         this.datePicker = createElement('div');
@@ -338,13 +339,14 @@ class DatePicker {
         const reg = /@([a-zA-Z_]\w*)="([^"]+)"/;
         const identify = [];
         const targetElem = sourceElem.cloneNode(false);
+        const prefix = this.prefix;
 
         function* generateID() {
             let uniqueID = parseInt('aaaa', 36) - 1;
 
             while(true) {
                 uniqueID++;
-                yield 'e_'+uniqueID.toString(36);
+                yield `data-v-${prefix}${uniqueID.toString(36)}`;
             }
         }
 
